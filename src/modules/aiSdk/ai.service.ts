@@ -20,55 +20,71 @@ export class AiService {
   private runningProjects: GeneratedNextProject[] = [];
 
   async generateNextProject(prompt: string): Promise<{ url: string }> {
-    // 1. Generate a unique project ID
+    // 1️⃣ Generate unique project ID
     const id = randomUUID();
     const projectRoot = path.join(process.cwd(), 'generated-sites', id);
     fs.mkdirSync(projectRoot, { recursive: true });
 
-    // 2. Ask GPT-5 to generate a full Next.js project (App Router)
+    // 2️⃣ Generate Next.js project using GPT
     const result = await generateText({
-      model: openai('gpt-5'),
+      model: openai('gpt-5.1'),
       prompt: `
-      Generate a complete Next.js 14 App Router project.
+Generate a complete Next.js 14 App Router project.
 
-      Format each file as:
-      \`\`\`file:path/to/file
-      // content
-      \`\`\`
+Format each file as:
+\`\`\`file:path/to/file
+<file content>
+\`\`\`
 
-      Required files:
-      - package.json
-      - tsconfig.json
-      - next.config.js
-      - app/layout.tsx
-      - app/page.tsx
-      - components/*
-      - styles/globals.css
+Required files:
+- package.json
+- tsconfig.json
+- next.config.js
+- app/layout.tsx
+- app/page.tsx
+- components/*
+- styles/globals.css
 
-      Website content: "${prompt}"
-      `,
+Website content: "${prompt}"
+`,
     });
 
     const txt = result.text;
 
-    // 3. Parse files from GPT output
-    const blocks = txt.split('```file:').slice(1);
-    for (const block of blocks) {
-      const [header, ...bodyParts] = block.split('\n');
-      const filePath = header.trim();
-      const content = bodyParts.join('\n').replace(/```$/, '');
+    // 3️⃣ Parse GPT output and write files
+    // Improved regex to match code blocks: ```file:path followed by content and closing ```
+    const codeBlockRegex = /```file:([^\n]+)\n([\s\S]*?)```/g;
+    let match;
+
+    while ((match = codeBlockRegex.exec(txt)) !== null) {
+      const filePath = match[1].trim();
+      let content = match[2].trim();
+
+      // Skip empty files
+      if (!content) continue;
+
+      // Optional: validate JSON files before writing
+      if (filePath.endsWith('.json')) {
+        try {
+          JSON.parse(content);
+        } catch (err) {
+          console.error(`Invalid JSON from GPT for file: ${filePath}`);
+          continue;
+        }
+      }
+
       const fullPath = path.join(projectRoot, filePath);
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-      fs.writeFileSync(fullPath, content.trim());
+      fs.writeFileSync(fullPath, content);
     }
 
-    // 4. Install dependencies automatically
+    // 4️⃣ Install dependencies
     await this.runCommand('pnpm install', projectRoot);
 
-    // 5. Pick a free port
+    // 5️⃣ Pick a free port
     const port = await getPort({ port: 3000 });
 
-    // 6. Spawn pnpm next dev automatically
+    // 6️⃣ Spawn pnpm next dev
     const child = spawn('pnpm', ['next', 'dev', '--port', port.toString()], {
       cwd: projectRoot,
       stdio: 'inherit',
@@ -77,7 +93,7 @@ export class AiService {
 
     this.runningProjects.push({ id, url: `/generated-sites/${id}`, port, process: child });
 
-    // 7. Return preview URL
+    // 7️⃣ Return live preview URL
     return { url: `http://localhost:${port}` };
   }
 
