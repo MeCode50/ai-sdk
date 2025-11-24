@@ -37,13 +37,38 @@ Format each file as:
 \`\`\`
 
 Required files:
-- package.json
-- tsconfig.json
-- next.config.js
+- package.json (with Next.js 14, React, TypeScript, Tailwind CSS dependencies)
+- tsconfig.json (standalone config for Next.js with jsx: "preserve", do NOT extend any parent config)
+- next.config.js (MUST include images configuration for external domains)
+- tailwind.config.ts
+- postcss.config.js
 - app/layout.tsx
 - app/page.tsx
-- components/*
-- styles/globals.css
+- app/globals.css
+- components/* (various React components)
+- .gitignore
+
+CRITICAL CONFIGURATION REQUIREMENTS:
+
+1. For tsconfig.json:
+- Must be a standalone configuration (no "extends" field)
+- Must include: "jsx": "preserve", "module": "esnext", "target": "es5"
+- Must include: "lib": ["dom", "dom.iterable", "esnext"]
+- Must include: "moduleResolution": "bundler"
+
+2. For next.config.js:
+- MUST configure images.remotePatterns or images.domains for any external images used
+- Common image domains to include: "images.pexels.com", "images.unsplash.com", "via.placeholder.com"
+- Do NOT include deprecated "experimental.appDir" option
+- Example structure:
+  module.exports = {
+    images: {
+      remotePatterns: [
+        { protocol: 'https', hostname: 'images.pexels.com' },
+        { protocol: 'https', hostname: 'images.unsplash.com' },
+      ],
+    },
+  };
 
 Website content: "${prompt}"
 `,
