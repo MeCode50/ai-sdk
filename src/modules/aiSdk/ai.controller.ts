@@ -20,9 +20,8 @@ export class AiController {
     status: 200,
     description: 'Generated website content',
   })
-  async generate(@Body('prompt') prompt: string) {
-    return {
-      result: await this.aiService.generateWebsiteContent(prompt),
-    };
+  @Post('generate-next')
+  async generateNext(@Body('prompt') prompt: string) {
+    return this.aiService.generateNextProject(prompt);
   }
 }

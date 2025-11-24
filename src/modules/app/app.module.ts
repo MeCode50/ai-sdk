@@ -2,15 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AiService } from '../aiSdk/ai.service';
+import { AiModule } from '../aiSdk/ai.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AiModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AiService],
+  providers: [AppService],
 })
 export class AppModule {}
