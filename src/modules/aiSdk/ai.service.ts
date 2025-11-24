@@ -7,7 +7,7 @@ import { generateText } from 'ai';
 export class AiService {
   async generateWebsiteContent(prompt: string) {
     const result = await generateText({
-      model: openai('gpt-5.1'),  // ✅ update this to the exact GPT-5 model you use
+      model: openai('gpt-5.1'),
       prompt: `
         You are an expert AI website generator.
         Generate complete website content based on the following request:
